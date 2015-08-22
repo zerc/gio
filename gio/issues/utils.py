@@ -36,3 +36,9 @@ class PullCommand(BasePullCommand):
 
 
 manager.add_command('pull', PullCommand())
+
+
+@manager.command
+def drop_data():
+    Event.drop()
+    Issue.drop()
