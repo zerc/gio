@@ -13,6 +13,8 @@ clean-pyc:
 	find . -name '*~' -exec rm -f {} +
 	find . -name '__pycache__' -exec rm -fr {} +
 
-
 run: clean
 	python gio/manage.py runserver
+
+pull:
+	python gio/manage.py pull
