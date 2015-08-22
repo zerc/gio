@@ -7,7 +7,7 @@ from app import db, app, signals
 from pymongo import ASCENDING
 from pymongo.collection import ReturnDocument
 
-__ALL__ = ('issue', 'event')
+__ALL__ = ('Issue', 'Event')
 
 
 issue_updated = signals.signal('issue-updated')
