@@ -1,6 +1,7 @@
 # coding: utf-8
 import copy
 from hashlib import md5
+from datetime import datetime
 
 from app import db, app, signals
 from pymongo import ASCENDING
@@ -33,20 +34,17 @@ class BaseItemClass(object):
     def insert_or_update(self, item, **kwargs):
         """ Wrapper around `collection.find_one_and_update` method.
         """
-
         data = copy.deepcopy(item)
-
-        meta_info = {
-            '_gio_data': {
-                'repo': self.repo_name
-            }
-        }
-        meta_info['_gio_data'].update(kwargs.pop('extra', {}))
-        data.update(meta_info)
+        self.patch_meta_info(data, kwargs.pop('extra', {}))
 
         return self.coll.find_one_and_update(
             {'id': item['id']}, {'$set': data},
             upsert=True, return_document=ReturnDocument.BEFORE)
+
+    def insert(self, item, **kwargs):
+        data = copy.deepcopy(item)
+        self.patch_meta_info(data, kwargs.pop('extra', {}))
+        return self.coll.insert_one(data, **kwargs)
 
     def get(self, *args, **kwargs):
         """ Wrapper for getting one element from collection.
@@ -63,6 +61,16 @@ class BaseItemClass(object):
         """ Drop it all
         """
         return self.coll.drop()
+
+    def patch_meta_info(self, data, extra):
+        meta_info = {
+            '_gio_data': {
+                'repo': self.repo_name
+            }
+        }
+        meta_info['_gio_data'].update(extra)
+        data.update(meta_info)
+        return data
 
     def _safe(self, item):
         """ Hide some staff property.
@@ -109,12 +117,21 @@ class EventClass(BaseItemClass):
     indexes = ('_gio_data.issue_number', '_gio_data.repo')
 
 
+class EventTypes(object):
+    UPDATED = 'updated'
+
 Issue = IssueClass()
 Event = EventClass()
 
 
 @issue_updated.connect_via(Issue)
 def issue_changed(sender, new_item, old_item):
-    print('>>>> CHANGED')
-    print(new_item)
-    print(old_item)
+    event = {
+        'actor': {},
+        'id': None,
+        'commit_id': None,
+        'created_at': datetime.utcnow().isoformat(),
+        'event': EventTypes.UPDATED,
+        'issue': new_item
+    }
+    Event.insert(event, extra={'issue_number': new_item['number']})
