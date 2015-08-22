@@ -1,27 +1,38 @@
 # coding: utf-8
-from app import repo
+from flask.ext.script import Command
+from app import repo, manager
 
-from .db import events as events_collection, issues as issues_collection
+from .db import Event, Issue
 
 
-def pull(since=False):
-    """ Fetching issues and his events from Github.
-
-    :since: If provided then fetch issues starts from this.
+class BasePullCommand(Command):
+    """ Base class for pull-based commands
     """
-    issues = repo.get_issues()
+    def run(self, since=None):
+        """ Fetching issues and his events from Github.
 
-    for i in issues:
-        insert_or_update(issues_collection, i)
+        :since: If provided then fetch issues starts from this.
+        """
+        issues = repo.get_issues()
 
-        for e in i.get_events():
-            insert_or_update(events_collection, e, _issue_number=i.number)
+        for i in issues:
+            self.proccess_issue(i)
+
+            for e in i.get_events():
+                self.proccess_event(e, i)
+
+    def proccess_issue(self, issue):
+        return Issue.insert_or_update(issue.raw_data)
+
+    def proccess_event(self, event, issue):
+        return Event.insert_or_update(
+            event.raw_data,
+            extra={'issue_number': issue.number})
 
 
-def insert_or_update(coll, item, **extra):
-    """ Wrapper around `collection.find_one_and_update` method.
+class PullCommand(BasePullCommand):
+    """ Pull issues and events from Github repository.
     """
-    data = item.raw_data
-    data.update(extra)
-    return coll.find_one_and_update(
-        {'id': item.id}, {'$set': data}, upsert=True)
+
+
+manager.add_command('pull', PullCommand())

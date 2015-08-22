@@ -20,6 +20,7 @@ repo = gh.get_repo(app.config['GIO_WATCHED_REPO'])
 
 def setup(app):
     from issues import issues_app
+    from issues import utils
 
     app.register_blueprint(issues_app)
 
