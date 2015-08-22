@@ -22,8 +22,14 @@ GIO_APP_TOKEN = None
 # Format: owner/repo
 GIO_WATCHED_REPO = 'zerc/django-vest'
 
-# In seconds
-GIO_POLLING_TIME = 60 * 5
+# Secret string
+GIO_HOOKS_SECRET = None
+
+# List of 3rd adapters used for deliver events
+GIO_TARGET_ADAPTERS = (
+    'hooks.adapters.PPrint',
+)
+
 
 try:
     from settings_local import *

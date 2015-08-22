@@ -24,7 +24,11 @@ def setup(app):
     from issues import issues_app
     from issues import utils
 
+    from hooks import hooks_app
+    from hooks import utils
+
     app.register_blueprint(issues_app)
+    app.register_blueprint(hooks_app)
 
 
 setup(app)

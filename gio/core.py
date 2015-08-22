@@ -1,6 +1,8 @@
 # coding: utf-8
 """ Some common functional.
 """
+import copy
+
 from pymongo import ASCENDING
 
 from app import app
