@@ -18,3 +18,6 @@ run: clean
 
 pull:
 	python gio/manage.py pull
+
+test: clean
+	python gio/tests.py

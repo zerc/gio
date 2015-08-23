@@ -13,6 +13,7 @@ SECRET_KEY = 'qidmmkj#wb-13l_$4_cmozv)g4te3v&di6@@c&(xkbomxwlyfv'
 # Flask-PyMongo currently not support PyMongo > 3 version and i dont using it
 MONGO_HOST = 'localhost'
 MONGO_PORT = 27017
+MONGO_DB = 'gio'
 
 # === Project specific settings ===
 # You can obtain it here: https://github.com/settings/tokens

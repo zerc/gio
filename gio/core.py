@@ -1,13 +1,16 @@
 # coding: utf-8
 """ Some common functional.
 """
+import os
 import copy
+import json
 
 from pymongo import ASCENDING
+from flask.ext.testing import TestCase
 
-from app import app
+from app import app, db
 
-__ALL__ = ('BaseItem',)
+__ALL__ = ('BaseItem', 'BaseTestCase')
 
 
 class BaseItem(object):
@@ -65,3 +68,30 @@ class BaseItem(object):
             return item
 
         return {k: v for k, v in item.items() if k not in self.UNSAFE_ATTRS}
+
+
+class BaseTestCase(TestCase):
+    """ Common TestCase.
+    """
+    fixtures = None
+
+    def create_app(self):
+        app.config.from_object('settings_test')
+        return app
+
+    def setUp(self):
+        for fname, coll_name in self.iter_fixtures():
+            with open(fname, 'r') as f:
+                getattr(db, coll_name).insert_many(json.loads(f.read()))
+
+    def tearDown(self):
+        for fname, coll_name in self.iter_fixtures():
+            getattr(db, coll_name).drop()
+
+    def iter_fixtures(self):
+        """ Iterator over needed fixtures.
+        """
+        for fn in (self.fixtures or []):
+            fname = os.path.join(app.config['BASE_DIR'], fn)
+            coll_name = os.path.basename(fn).split('.')[0]
+            yield fname, coll_name

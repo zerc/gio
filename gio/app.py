@@ -1,4 +1,8 @@
 # coding: utf-8
+import os
+import sys
+import unittest
+
 from flask import Flask
 from flask.ext.script import Manager
 
@@ -9,11 +13,15 @@ from blinker import Namespace
 app = Flask(__name__,
             instance_relative_config=True)
 
-app.config.from_object('settings')
+
+if os.environ.get('GIO_TEST', None) == 'test':
+    app.config.from_object('settings_test')
+else:
+    app.config.from_object('settings')
 
 manager = Manager(app)
 mongo = MongoClient(app.config['MONGO_HOST'], app.config['MONGO_PORT'])
-db = getattr(mongo, __name__)
+db = getattr(mongo, app.config['MONGO_DB'])
 signals = Namespace()
 
 gh = Github(app.config['GIO_APP_TOKEN'])
@@ -36,10 +44,10 @@ except GithubException.GithubException:
 
 
 def setup(app):
-    from issues import issues_app
+    from issues.views import issues_app
     from issues import utils
 
-    from hooks import hooks_app
+    from hooks.views import hooks_app
     from hooks import utils
 
     app.register_blueprint(issues_app)
