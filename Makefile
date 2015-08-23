@@ -15,10 +15,10 @@ clean-pyc:
 	find . -name '__pycache__' -exec rm -fr {} +
 
 run: clean
-	python gio/manage.py runserver
+	./venv/bin/python gio/manage.py runserver
 
 test: clean
-	python gio/tests.py
+	./venv/bin/python gio/tests.py
 
 install:
 	virtualenv venv
