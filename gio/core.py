@@ -35,31 +35,41 @@ class BaseItem(object):
         self.patch_meta_info(data, kwargs.pop('extra', {}))
         return self.coll.insert_one(data, **kwargs)
 
-    def find(self, *args, **kwargs):
+    def find(self, _filter=None, *args, **kwargs):
         """ Wrapper around .find method for skipping some staff keys.
         """
-        for item in self.coll.find(*args, **kwargs):
+        _filter = _filter or {}
+        self.patch_filter_param(_filter)
+        for item in self.coll.find(_filter, *args, **kwargs):
             yield self._safe(item)
 
-    def get(self, *args, **kwargs):
+    def get(self, _filter=None, *args, **kwargs):
         """ Wrapper for getting one element from collection.
         """
-        return self._safe(self.coll.find_one(*args, **kwargs))
+        _filter = _filter or {}
+        self.patch_filter_param(_filter)
+        return self._safe(self.coll.find_one(_filter, *args, **kwargs))
 
     def drop(self):
         """ Drop it all
         """
         return self.coll.drop()
 
-    def patch_meta_info(self, data, extra):
+    def patch_meta_info(self, data, extra=None):
         meta_info = {
             '_gio_data': {
                 'repo': self.repo_name
             }
         }
-        meta_info['_gio_data'].update(extra)
+        meta_info['_gio_data'].update(extra or {})
         data.update(meta_info)
         return data
+
+    def patch_filter_param(self, _filter):
+        """ Filter all data for currently watching repo.
+        """
+        _filter['_gio_data.repo'] = self.repo_name
+        return _filter
 
     def _safe(self, item):
         """ Hide some staff property.
