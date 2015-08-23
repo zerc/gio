@@ -5,6 +5,7 @@ from datetime import datetime
 
 from app import db, app, signals
 from core import BaseItem
+from pymongo import DESCENDING
 from pymongo.collection import ReturnDocument
 
 __ALL__ = ('Issue', 'Event')
@@ -67,11 +68,24 @@ class EventClass(BaseItemClass):
     indexes = ('_gio_data.issue_number', '_gio_data.repo')
 
 
+class PullSessionClass(BaseItemClass):
+    """ Simple store information about pulls.
+    """
+    coll = db.pull_sessions
+    indexes = ('timestamp', '_gio_data.repo')
+
+    SUCCESS, ERROR = 0, 1
+
+    def latest(self):
+        return PullSession.coll.find_one(sort=[('timestamp', DESCENDING)])
+
+
 class EventTypes(object):
     UPDATED = 'updated'
 
 Issue = IssueClass()
 Event = EventClass()
+PullSession = PullSessionClass()
 
 
 @issue_updated.connect_via(Issue)

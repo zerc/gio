@@ -1,25 +1,40 @@
 # coding: utf-8
-from flask.ext.script import Command
+from datetime import datetime
+
+from flask.ext.script import Command, Option
+from github.GithubObject import NotSet
+
 from app import repo, manager
 
-from .db import Event, Issue
+from .db import Event, Issue, PullSession
 
 
-class BasePullCommand(Command):
-    """ Base class for pull-based commands
+class Puller(object):
+    """ Context manager for tracking all pull sessions.
     """
-    def run(self, since=None):
-        """ Fetching issues and his events from Github.
+    def __init__(self, force_all):
+        self.kwargs = {'state': 'all'}
 
-        :since: If provided then fetch issues starts from this.
+        if not force_all:
+            self.kwargs['since'] = (PullSession.latest()
+                                    or {'timestamp': NotSet})['timestamp']
+
+    def init(self):
+        """ Must be initiated inside context manager.
         """
-        issues = repo.get_issues()
+        self.issues = repo.get_issues(**self.kwargs)
 
-        for i in issues:
-            self.proccess_issue(i)
+    def __enter__(self):
+        return self
 
-            for e in i.get_events():
-                self.proccess_event(e, i)
+    def __exit__(self, *args):
+        # has exception
+        if any(args):
+            status = PullSession.ERROR
+        else:
+            status = PullSession.SUCCESS
+
+        PullSession.insert({'status': status, 'timestamp': datetime.utcnow()})
 
     def proccess_issue(self, issue):
         return Issue.insert_or_update(issue.raw_data)
@@ -30,9 +45,26 @@ class BasePullCommand(Command):
             extra={'issue_number': issue.number})
 
 
-class PullCommand(BasePullCommand):
+class PullCommand(Command):
     """ Pull issues and events from Github repository.
     """
+    option_list = (
+        Option('--force_all', '-f', dest='force_all', default=False),
+    )
+
+    def run(self, force_all):
+        """ Fetching issues and his events from Github.
+
+        :force_all: If True then fetch all issues.
+        """
+        with Puller(force_all) as p:
+            p.init()
+
+            for i in p.issues:
+                p.proccess_issue(i)
+
+                for e in i.get_events():
+                    p.proccess_event(e, i)
 
 
 manager.add_command('pull', PullCommand())
