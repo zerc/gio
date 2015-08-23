@@ -17,9 +17,6 @@ clean-pyc:
 run: clean
 	python gio/manage.py runserver
 
-pull:
-	python gio/manage.py pull
-
 test: clean
 	python gio/tests.py
 
