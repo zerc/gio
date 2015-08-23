@@ -4,6 +4,7 @@ help:
 	@echo "clean - remove all build, test, coverage and Python artifacts"
 	@echo "clean-pyc - remove Python file artifacts"
 	@echo "run - run development server"
+	@echo "install - install all deps"
 
 clean: clean-pyc
 
@@ -21,3 +22,9 @@ pull:
 
 test: clean
 	python gio/tests.py
+
+install:
+	virtualenv venv
+	. venv/bin/activate
+	pip install -r requirements.txt
+	@echo 'Done! Try type "make run" now'
