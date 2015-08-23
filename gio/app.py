@@ -2,7 +2,7 @@
 from flask import Flask
 from flask.ext.script import Manager
 
-from github import Github
+from github import Github, GithubException
 from pymongo import MongoClient
 from blinker import Namespace
 
@@ -18,6 +18,21 @@ signals = Namespace()
 
 gh = Github(app.config['GIO_APP_TOKEN'])
 repo = gh.get_repo(app.config['GIO_WATCHED_REPO'])
+
+try:
+    gh_user = gh.get_user()
+except GithubException.GithubException:
+    class GhUser(object):
+        """ Default user.
+        """
+        login = 'gio_bot'
+        _id = -1
+
+        @property
+        def raw_data(self):
+            return {'login': self.login, 'id': self._id}
+
+    gh_user = GhUser()
 
 
 def setup(app):

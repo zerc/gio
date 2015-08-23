@@ -75,7 +75,9 @@ Event = EventClass()
 
 
 @issue_updated.connect_via(Issue)
-def issue_changed(sender, new_item, old_item):
+def create_event(sender, new_item, old_item):
+    """ Generate event for updated issue.
+    """
     event = {
         'actor': {},
         'id': None,
