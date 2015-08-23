@@ -9,4 +9,4 @@ def send_hooks():
     """ Send stored hooks.
     """
     for ad in AdaptersRouter():
-        ad.proccess()
+        ad.process()

@@ -54,8 +54,8 @@ class BaseAdapter(object):
 
             yield item
 
-    def proccess(self):
-        raise NotImplementedError('You must implement .proccess method')
+    def process(self):
+        raise NotImplementedError('You must implement .process method')
 
 
 class PPrint(BaseAdapter):
@@ -65,6 +65,6 @@ class PPrint(BaseAdapter):
         super(PPrint, self).__init__(*args, **kwargs)
         self.pp = pprint.PrettyPrinter(indent=4)
 
-    def proccess(self):
+    def process(self):
         for item in self:
             self.pp.pprint(item)
