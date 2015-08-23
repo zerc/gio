@@ -2,6 +2,8 @@
 import pprint
 import importlib
 
+import requests
+
 from app import app
 
 from .db import QueueItem
@@ -24,7 +26,7 @@ class AdaptersRouter(object):
             args = tuple()
 
             if isinstance(path, tuple):
-                path, args = a
+                path, args = path
 
             try:
                 module, cls = path.rsplit('.', 1)
@@ -34,9 +36,14 @@ class AdaptersRouter(object):
             self._adapters.append(
                 getattr(importlib.import_module(module), cls)(*args))
 
-    def __iter__(self):
-        for a in self._adapters:
-            yield a
+    def process(self):
+        while True:
+            item = QueueItem.find_one_for_sending()
+            if not item:
+                break
+
+            for a in self._adapters:
+                a.process(item)
 
 
 class BaseAdapter(object):
@@ -46,15 +53,7 @@ class BaseAdapter(object):
         self.args = args
         self.kwargs = kwargs
 
-    def __iter__(self):
-        while True:
-            item = QueueItem.find_one_for_sending()
-            if not item:
-                break
-
-            yield item
-
-    def process(self):
+    def process(self, item):
         raise NotImplementedError('You must implement .process method')
 
 
@@ -65,6 +64,18 @@ class PPrint(BaseAdapter):
         super(PPrint, self).__init__(*args, **kwargs)
         self.pp = pprint.PrettyPrinter(indent=4)
 
-    def process(self):
-        for item in self:
-            self.pp.pprint(item)
+    def process(self, item):
+        self.pp.pprint(item)
+
+
+class Remote(BaseAdapter):
+    """ Send json data to 3rd parth system.
+    """
+    def __init__(self, url, *args, **kwargs):
+        self.url = url
+        self.headers = {
+            'Content-Type': 'application/json'
+        }
+
+    def process(self, item):
+        requests.post(self.url, data=item, headers=self.headers)

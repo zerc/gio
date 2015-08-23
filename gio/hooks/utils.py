@@ -8,5 +8,4 @@ from .adapters import AdaptersRouter
 def send_hooks():
     """ Send stored hooks.
     """
-    for ad in AdaptersRouter():
-        ad.process()
+    AdaptersRouter().process()
