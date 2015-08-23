@@ -10,6 +10,6 @@ hooks_app = Blueprint('hooks', __name__)
 def proccess_hook():
     """ Put incoming hook into queue.
     """
-    # TODO: add checking of X-Hub-Signature and X-Github-Event
+    # TODO: add checking of X-Hub-Signature
     QueueItem.insert(request.json)
     return 'Ok'
