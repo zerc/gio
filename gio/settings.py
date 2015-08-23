@@ -23,12 +23,15 @@ GIO_APP_TOKEN = None
 # Format: owner/repo
 GIO_WATCHED_REPO = 'zerc/django-vest'
 
-# Secret string
+# Secret string (Not used in current release)
 GIO_HOOKS_SECRET = None
 
 # List of 3rd adapters used for deliver events
 GIO_TARGET_ADAPTERS = (
     'hooks.adapters.PPrint',
+
+    # Example of remote adapter which sends data to 3rd party system
+    # ('hooks.adapters.Remote', ('http://secret-url.io/payload',))
 )
 
 

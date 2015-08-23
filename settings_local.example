@@ -1,2 +1,14 @@
 # coding: utf-8
 DEBUG = True
+
+# Default settings
+# MONGO_HOST = 'localhost'
+# MONGO_PORT = 27017
+# MONGO_DB = 'gio'
+
+# You can obtain it here: https://github.com/settings/tokens
+# If not set - do requests as anonymous user who has hard rate limits
+# GIO_APP_TOKEN = None
+
+# Format: owner/repo
+# GIO_WATCHED_REPO = 'zerc/django-vest'
